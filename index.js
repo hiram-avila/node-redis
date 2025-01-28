@@ -5,8 +5,11 @@ import axios from 'axios'; // Importar Axios para realizar solicitudes HTTP
 const app = express();
 const PORT = 3000;
 
-// Conexión a Redis
-const redis = new Redis(); // Asegúrate de que Redis esté corriendo en localhost y puerto 6379
+// Conexión a Redis (usando ioredis)
+const redis = new Redis({
+    host: 'redis-server', // Nombre del contenedor de Redis si estás usando Docker
+    port: 6379,           // Puerto de Redis
+});
 
 // Función para obtener el clima desde la API de wttr.in
 async function getWeather(city) {
@@ -27,6 +30,16 @@ async function getWeather(city) {
 
         return weatherData; // Devolver la información estructurada
     } catch (error) {
+        if (error.response) {
+            // Si la API responde con un código de error
+            console.error('Error de la API:', error.response.status, error.response.data);
+        } else if (error.request) {
+            // Si no se recibe respuesta de la API
+            console.error('No se recibió respuesta de la API:', error.request);
+        } else {
+            // Otros errores
+            console.error('Error en la solicitud:', error.message);
+        }
         throw new Error('Error al obtener datos de la API externa');
     }
 }
